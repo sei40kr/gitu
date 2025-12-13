@@ -24,10 +24,10 @@ pub(crate) fn compute_graph_layout(items: &mut [Item]) {
     // Second pass: calculate max width and update all graph data
     let max_width = calculate_max_graph_width(items);
     for item in items.iter_mut() {
-        if let ItemData::Commit { graph_data, .. } = &mut item.data {
-            if let Some(graph) = graph_data {
-                graph.max_width = max_width;
-            }
+        if let ItemData::Commit { graph_data, .. } = &mut item.data
+            && let Some(graph) = graph_data
+        {
+            graph.max_width = max_width;
         }
     }
 }
@@ -35,34 +35,46 @@ pub(crate) fn compute_graph_layout(items: &mut [Item]) {
 /// Calculate the maximum graph width (in characters) across all commit items
 /// This simulates the actual rendering to get accurate width
 fn calculate_max_graph_width(items: &[Item]) -> usize {
-    items.iter().filter_map(|item| {
-        match &item.data {
-            ItemData::Commit { graph_data, .. } => {
-                graph_data.as_ref().map(|g| {
-                    // Simulate the actual rendering:
-                    // For each column: 1 char + horizontal_padding chars + (0 or 1 space)
-                    g.columns.iter().map(|col| {
-                        // Character itself (1 char)
-                        let mut width = 1;
+    items
+        .iter()
+        .filter_map(|item| {
+            match &item.data {
+                ItemData::Commit { graph_data, .. } => {
+                    graph_data.as_ref().map(|g| {
+                        // Simulate the actual rendering:
+                        // For each column: 1 char + horizontal_padding chars + (0 or 1 space)
+                        g.columns
+                            .iter()
+                            .map(|col| {
+                                // Character itself (1 char)
+                                let mut width = 1;
 
-                        // Add horizontal padding width
-                        if col.horizontal_padding > 0 {
-                            width += col.horizontal_padding;
-                            // No space after horizontal padding
-                        } else {
-                            // Add space after character (except for Horizontal, VerticalDashed, and Empty)
-                            if !matches!(col.char_type, GraphCharType::Horizontal | GraphCharType::VerticalDashed | GraphCharType::Empty) {
-                                width += 1;
-                            }
-                        }
+                                // Add horizontal padding width
+                                if col.horizontal_padding > 0 {
+                                    width += col.horizontal_padding;
+                                    // No space after horizontal padding
+                                } else {
+                                    // Add space after character (except for Horizontal, VerticalDashed, and Empty)
+                                    if !matches!(
+                                        col.char_type,
+                                        GraphCharType::Horizontal
+                                            | GraphCharType::VerticalDashed
+                                            | GraphCharType::Empty
+                                    ) {
+                                        width += 1;
+                                    }
+                                }
 
-                        width
-                    }).sum::<usize>()
-                })
-            },
-            _ => None, // Only count Commit items, not GraphLine
-        }
-    }).max().unwrap_or(0)
+                                width
+                            })
+                            .sum::<usize>()
+                    })
+                }
+                _ => None, // Only count Commit items, not GraphLine
+            }
+        })
+        .max()
+        .unwrap_or(0)
 }
 
 /// Insert GraphLine items after commits that have post_commit_line data
@@ -71,27 +83,31 @@ pub(crate) fn insert_graph_lines(items: Vec<Item>) -> Vec<Item> {
 
     for item in items {
         let has_post_line = if let ItemData::Commit { graph_data, .. } = &item.data {
-            graph_data.as_ref().and_then(|g| g.post_commit_line.as_ref()).is_some()
+            graph_data
+                .as_ref()
+                .and_then(|g| g.post_commit_line.as_ref())
+                .is_some()
         } else {
             false
         };
 
         result.push(item.clone());
 
-        if has_post_line {
-            if let ItemData::Commit { graph_data, .. } = &item.data {
-                if let Some(post_line) = graph_data.as_ref().and_then(|g| g.post_commit_line.as_ref()) {
-                    result.push(Item {
-                        id: item.id + 1, // Simple ID generation
-                        depth: item.depth,
-                        data: ItemData::GraphLine {
-                            columns: post_line.clone(),
-                        },
-                        unselectable: true,
-                        default_collapsed: false,
-                    });
-                }
-            }
+        if has_post_line
+            && let ItemData::Commit { graph_data, .. } = &item.data
+            && let Some(post_line) = graph_data
+                .as_ref()
+                .and_then(|g| g.post_commit_line.as_ref())
+        {
+            result.push(Item {
+                id: item.id + 1, // Simple ID generation
+                depth: item.depth,
+                data: ItemData::GraphLine {
+                    columns: post_line.clone(),
+                },
+                unselectable: true,
+                default_collapsed: false,
+            });
         }
     }
 
@@ -186,15 +202,21 @@ impl GraphLayout {
         // Additional parents need new columns
         for parent_id in &parent_ids[1..] {
             // Check if already in a column
-            let existing = self.columns.iter().enumerate()
-                .find(|(_, slot)| slot.as_ref().map_or(false, |s| &s.oid == parent_id))
+            let existing = self
+                .columns
+                .iter()
+                .enumerate()
+                .find(|(_, slot)| slot.as_ref().is_some_and(|s| &s.oid == parent_id))
                 .map(|(idx, _)| idx);
 
             if let Some(col) = existing {
                 parent_cols.push(col);
             } else {
                 // Find first empty column
-                let empty_col = self.columns.iter().enumerate()
+                let empty_col = self
+                    .columns
+                    .iter()
+                    .enumerate()
                     .find(|(_, slot)| slot.is_none())
                     .map(|(idx, _)| idx)
                     .unwrap_or(self.columns.len());
@@ -207,16 +229,27 @@ impl GraphLayout {
 
     /// Generate a post-commit line knowing where parents will be
     /// Creates a line like: `├─╮` or `├─┊─╮` to show merge connections
-    fn generate_post_commit_line_with_parents(&self, commit_col: usize, parent_cols: &[usize]) -> Vec<GraphColumn> {
+    fn generate_post_commit_line_with_parents(
+        &self,
+        commit_col: usize,
+        parent_cols: &[usize],
+    ) -> Vec<GraphColumn> {
         let mut line_columns = Vec::new();
         let commit_color = self.columns[commit_col].as_ref().unwrap().color;
 
         // Find the rightmost parent column (for merge visualization)
-        let rightmost_parent = parent_cols.iter().filter(|&&c| c != commit_col).max().copied();
+        let rightmost_parent = parent_cols
+            .iter()
+            .filter(|&&c| c != commit_col)
+            .max()
+            .copied();
 
         // Determine the maximum column we need to render
         // Must include all parent columns and existing columns
-        let max_col = parent_cols.iter().max().copied()
+        let max_col = parent_cols
+            .iter()
+            .max()
+            .copied()
             .unwrap_or(commit_col)
             .max(self.columns.len().saturating_sub(1));
 
@@ -225,11 +258,14 @@ impl GraphLayout {
                 // This is where the merge commit was
                 if parent_cols.len() > 1 && rightmost_parent.is_some() {
                     // Merge: use ├ to connect down and to right
-                    GraphCharType::LeftVertical  // ├
+                    GraphCharType::LeftVertical // ├
                 } else {
-                    GraphCharType::Vertical  // │ (single parent, just continue)
+                    GraphCharType::Vertical // │ (single parent, just continue)
                 }
-            } else if col_idx > commit_col && rightmost_parent.is_some() && col_idx < rightmost_parent.unwrap() {
+            } else if col_idx > commit_col
+                && rightmost_parent.is_some()
+                && col_idx < rightmost_parent.unwrap()
+            {
                 // Between commit and rightmost parent - draw horizontal line or dashed vertical
                 if self.columns.get(col_idx).and_then(|s| s.as_ref()).is_some() {
                     // Active column in the way - use dashed vertical ┊
@@ -240,7 +276,7 @@ impl GraphLayout {
                 }
             } else if Some(col_idx) == rightmost_parent {
                 // Rightmost parent - use ╮ to turn down
-                GraphCharType::RightTop  // ╮
+                GraphCharType::RightTop // ╮
             } else if col_idx < self.columns.len() && self.columns[col_idx].is_some() {
                 // Active column, just pass through
                 GraphCharType::Vertical
@@ -249,15 +285,17 @@ impl GraphLayout {
             };
 
             let color_index = if col_idx < self.columns.len() {
-                self.columns[col_idx].as_ref().map(|s| s.color).unwrap_or(commit_color)
+                self.columns[col_idx]
+                    .as_ref()
+                    .map(|s| s.color)
+                    .unwrap_or(commit_color)
             } else {
                 commit_color
             };
 
             // Calculate horizontal padding: how many horizontal lines to draw after this column
             // For connector lines, we need horizontal lines between each column from ├ to ╮
-            let horizontal_padding = if rightmost_parent.is_some() {
-                let rp = rightmost_parent.unwrap();
+            let horizontal_padding = if let Some(rp) = rightmost_parent {
                 if col_idx >= commit_col && col_idx < rp {
                     // Draw one horizontal line after each column between ├ and ╮
                     1
@@ -282,10 +320,10 @@ impl GraphLayout {
     fn find_commit_column(&mut self, oid: &str) -> usize {
         // Check if this commit is already expected in a column
         for (col_idx, slot) in self.columns.iter().enumerate() {
-            if let Some(state) = slot {
-                if state.oid == oid {
-                    return col_idx;
-                }
+            if let Some(state) = slot
+                && state.oid == oid
+            {
+                return col_idx;
             }
         }
 
@@ -369,7 +407,7 @@ impl GraphLayout {
         }
 
         // Compact: remove trailing empty columns
-        while self.columns.last().map_or(false, |s| s.is_none()) {
+        while self.columns.last().is_some_and(|s| s.is_none()) {
             self.columns.pop();
         }
     }
@@ -409,7 +447,12 @@ mod tests {
         compute_graph_layout(&mut items);
 
         // Verify merge commit has graph data with post_commit_line
-        if let ItemData::Commit { graph_data, parent_ids, .. } = &items[0].data {
+        if let ItemData::Commit {
+            graph_data,
+            parent_ids,
+            ..
+        } = &items[0].data
+        {
             assert!(graph_data.is_some());
             let graph = graph_data.as_ref().unwrap();
             // Merge commits should have post_commit_line

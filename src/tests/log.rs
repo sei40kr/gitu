@@ -119,7 +119,17 @@ fn graph_merge_commit() {
     commit(&ctx.dir, "main-work", "main work");
 
     // Merge feature branch
-    run(&ctx.dir, &["git", "merge", "feature", "--no-ff", "-m", "Merge feature branch"]);
+    run(
+        &ctx.dir,
+        &[
+            "git",
+            "merge",
+            "feature",
+            "--no-ff",
+            "-m",
+            "Merge feature branch",
+        ],
+    );
 
     snapshot!(ctx, "ll");
 }
@@ -147,10 +157,30 @@ fn graph_complex_branching() {
     commit(&ctx.dir, "main2", "main work 2");
 
     // Merge feature-a
-    run(&ctx.dir, &["git", "merge", "feature-a", "--no-ff", "-m", "Merge feature-a"]);
+    run(
+        &ctx.dir,
+        &[
+            "git",
+            "merge",
+            "feature-a",
+            "--no-ff",
+            "-m",
+            "Merge feature-a",
+        ],
+    );
 
     // Merge feature-b
-    run(&ctx.dir, &["git", "merge", "feature-b", "--no-ff", "-m", "Merge feature-b"]);
+    run(
+        &ctx.dir,
+        &[
+            "git",
+            "merge",
+            "feature-b",
+            "--no-ff",
+            "-m",
+            "Merge feature-b",
+        ],
+    );
 
     snapshot!(ctx, "ll");
 }
@@ -177,7 +207,18 @@ fn graph_octopus_merge() {
 
     // Octopus merge (merge all branches at once)
     run(&ctx.dir, &["git", "checkout", "main"]);
-    run(&ctx.dir, &["git", "merge", "branch1", "branch2", "branch3", "-m", "Octopus merge"]);
+    run(
+        &ctx.dir,
+        &[
+            "git",
+            "merge",
+            "branch1",
+            "branch2",
+            "branch3",
+            "-m",
+            "Octopus merge",
+        ],
+    );
 
     snapshot!(ctx, "ll");
 }
@@ -200,17 +241,41 @@ fn graph_criss_cross_merge() {
 
     // Cross-merge: left merges right
     run(&ctx.dir, &["git", "checkout", "left"]);
-    run(&ctx.dir, &["git", "merge", "right", "--no-ff", "-m", "left merges right"]);
+    run(
+        &ctx.dir,
+        &[
+            "git",
+            "merge",
+            "right",
+            "--no-ff",
+            "-m",
+            "left merges right",
+        ],
+    );
     commit(&ctx.dir, "left2", "left work 2");
 
     // Cross-merge: right merges left
     run(&ctx.dir, &["git", "checkout", "right"]);
-    run(&ctx.dir, &["git", "merge", "left", "--no-ff", "-m", "right merges left"]);
+    run(
+        &ctx.dir,
+        &["git", "merge", "left", "--no-ff", "-m", "right merges left"],
+    );
     commit(&ctx.dir, "right2", "right work 2");
 
     // Final merge on main
     run(&ctx.dir, &["git", "checkout", "main"]);
-    run(&ctx.dir, &["git", "merge", "left", "right", "--no-ff", "-m", "Final criss-cross merge"]);
+    run(
+        &ctx.dir,
+        &[
+            "git",
+            "merge",
+            "left",
+            "right",
+            "--no-ff",
+            "-m",
+            "Final criss-cross merge",
+        ],
+    );
 
     snapshot!(ctx, "ll");
 }
@@ -225,7 +290,10 @@ fn graph_disabled() {
     commit(&ctx.dir, "feature1", "feature work");
     run(&ctx.dir, &["git", "checkout", "main"]);
     commit(&ctx.dir, "main-work", "main work");
-    run(&ctx.dir, &["git", "merge", "feature", "--no-ff", "-m", "Merge feature"]);
+    run(
+        &ctx.dir,
+        &["git", "merge", "feature", "--no-ff", "-m", "Merge feature"],
+    );
 
     // Graph should not be displayed
     snapshot!(ctx, "ll");

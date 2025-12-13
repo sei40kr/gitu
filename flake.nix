@@ -66,6 +66,16 @@
 
         in rec {
           inherit packages checks;
+
+          devShells.default = pkgs.mkShell {
+            inputsFrom = [ packages.gitu ];
+            nativeBuildInputs = with pkgs; [
+              toolchain
+              git-cliff
+              cargo-nextest
+              cargo-deny
+            ];
+          };
         };
     };
 }

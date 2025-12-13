@@ -74,7 +74,10 @@ impl Item {
                 if let Some(graph) = graph_data {
                     use crate::item_data::GraphCharType;
 
-                    let is_ascii = matches!(config.general.log_graph_style, crate::config::LogGraphStyle::Ascii);
+                    let is_ascii = matches!(
+                        config.general.log_graph_style,
+                        crate::config::LogGraphStyle::Ascii
+                    );
 
                     // Find the commit node's color (for separator)
                     for col in &graph.columns {
@@ -86,7 +89,8 @@ impl Item {
 
                     for col in &graph.columns {
                         let color = if !config.style.graph_colors.is_empty() {
-                            config.style.graph_colors[col.color_index % config.style.graph_colors.len()]
+                            config.style.graph_colors
+                                [col.color_index % config.style.graph_colors.len()]
                         } else {
                             ratatui::style::Color::Blue
                         };
@@ -126,7 +130,12 @@ impl Item {
                             ));
                         } else {
                             // Add space after characters except horizontal, vertical dashed, and empty
-                            if !matches!(col.char_type, GraphCharType::Horizontal | GraphCharType::VerticalDashed | GraphCharType::Empty) {
+                            if !matches!(
+                                col.char_type,
+                                GraphCharType::Horizontal
+                                    | GraphCharType::VerticalDashed
+                                    | GraphCharType::Empty
+                            ) {
                                 spans.push(Span::raw(" "));
                             }
                         }
@@ -136,7 +145,10 @@ impl Item {
                 // Pad to fixed width for alignment if graph is present
                 if has_graph {
                     // Calculate actual rendered width in characters (not bytes)
-                    let graph_len: usize = spans[graph_span_start..].iter().map(|s| s.content.chars().count()).sum();
+                    let graph_len: usize = spans[graph_span_start..]
+                        .iter()
+                        .map(|s| s.content.chars().count())
+                        .sum();
                     if graph_len < GRAPH_WIDTH {
                         spans.push(Span::raw(" ".repeat(GRAPH_WIDTH - graph_len)));
                     }
@@ -152,7 +164,10 @@ impl Item {
                         ratatui::style::Color::Blue
                     };
 
-                    let is_ascii = matches!(config.general.log_graph_style, crate::config::LogGraphStyle::Ascii);
+                    let is_ascii = matches!(
+                        config.general.log_graph_style,
+                        crate::config::LogGraphStyle::Ascii
+                    );
                     let separator = if is_ascii { " | " } else { " ┃ " };
                     spans.push(Span::styled(
                         separator,
@@ -185,7 +200,10 @@ impl Item {
             ItemData::GraphLine { columns } => {
                 use crate::item_data::GraphCharType;
 
-                let is_ascii = matches!(config.general.log_graph_style, crate::config::LogGraphStyle::Ascii);
+                let is_ascii = matches!(
+                    config.general.log_graph_style,
+                    crate::config::LogGraphStyle::Ascii
+                );
                 let mut spans = Vec::new();
 
                 for col in columns {
@@ -230,7 +248,12 @@ impl Item {
                         ));
                     } else {
                         // Add space after characters except horizontal, vertical dashed, and empty
-                        if !matches!(col.char_type, GraphCharType::Horizontal | GraphCharType::VerticalDashed | GraphCharType::Empty) {
+                        if !matches!(
+                            col.char_type,
+                            GraphCharType::Horizontal
+                                | GraphCharType::VerticalDashed
+                                | GraphCharType::Empty
+                        ) {
                             spans.push(Span::raw(" "));
                         }
                     }
