@@ -1,0 +1,25 @@
+---
+source: src/tests/log.rs
+expression: ctx.redact_buffer()
+---
+▌•             ┃ 456c220 main Final criss-cross merge                           |
+ ├─╮                                                                            |
+ • │           ┃ 33418b0 add initial                                            |
+ │ •           ┃ 6fd976e right add right2                                       |
+ • │           ┃ b66a0bf origin/main add initial-file                           |
+ •             ┃ 38666ab right merges left                                      |
+ ╮ ├                                                                            |
+ │ •           ┃ 39f24a2 add right1                                             |
+ • │           ┃ bb6f2b2 left add left2                                         |
+ • │           ┃ e42c03d left merges right                                      |
+ ├─┊─╮                                                                          |
+ • │           ┃ 97159ec add left1                                              |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+styles_hash: 6fc16eaf607f37f9

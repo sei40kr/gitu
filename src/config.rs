@@ -37,6 +37,7 @@ pub struct GeneralConfig {
     pub recent_commits_limit: usize,
     pub mouse_support: bool,
     pub mouse_scroll_lines: usize,
+    pub log_graph_style: LogGraphStyle,
 }
 
 #[derive(Default, Debug, Deserialize)]
@@ -53,6 +54,15 @@ pub enum ConfirmDiscardOption {
     Hunk,
     File,
     Never,
+}
+
+#[derive(Default, Debug, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum LogGraphStyle {
+    #[default]
+    None,
+    Ascii,
+    Unicode,
 }
 
 #[derive(Default, Debug, Deserialize)]
@@ -76,6 +86,8 @@ pub struct StyleConfig {
     pub branch: StyleConfigEntry,
     pub remote: StyleConfigEntry,
     pub tag: StyleConfigEntry,
+
+    pub graph_colors: Vec<Color>,
 
     pub command: StyleConfigEntry,
     pub active_arg: StyleConfigEntry,

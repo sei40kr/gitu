@@ -1,0 +1,25 @@
+---
+source: src/tests/log.rs
+expression: ctx.redact_buffer()
+---
+▌*             | 98f6223 main Octopus merge                                     |
+ |-\                                                                            |
+ * | |         | 5c708ee branch1 add file1                                      |
+ | * |         | 9ea0469 branch2 add file2                                      |
+ | | *         | 41cdc98 branch3 add file3                                      |
+ * | |         | b5b3cd5 add base                                               |
+ * | |         | b66a0bf origin/main add initial-file                           |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+styles_hash: 8e32741c84edfaf5

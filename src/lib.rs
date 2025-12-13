@@ -7,6 +7,7 @@ pub mod error;
 mod file_watcher;
 mod git;
 pub mod gitu_diff;
+mod graph;
 mod highlight;
 mod item_data;
 mod items;

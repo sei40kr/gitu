@@ -1,0 +1,25 @@
+---
+source: src/tests/log.rs
+expression: ctx.redact_buffer()
+---
+▌*             | 14d3948 main Merge feature branch                              |
+ |-\                                                                            |
+ * |           | bb4e653 add main-work                                          |
+ | *           | d403694 feature add feature2                                   |
+ * |           | b66a0bf origin/main add initial-file                           |
+ *             | 051e105 add feature1                                           |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+styles_hash: 2376c8906ac31cde

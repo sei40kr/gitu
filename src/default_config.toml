@@ -14,6 +14,12 @@ recent_commits_limit = 10
 mouse_support = false
 mouse_scroll_lines = 3
 
+# Commit graph visualization in log view. Options:
+# "none"    - no graph visualization (default)
+# "ascii"   - use ASCII characters (|, /, \, *, -, +)
+# "unicode" - use Unicode box-drawing characters (│, ─, ╭, ╮, ╯, ╰, ●)
+log_graph_style = "none"
+
 # When to prompt for discard confirmation. Options:
 # "line"  - always prompt even for individual lines (default),
 # "hunk"  - prompt for files and hunks,
@@ -81,6 +87,10 @@ hash = { fg = "yellow" }
 branch = { fg = "green" }
 remote = { fg = "red" }
 tag = { fg = "yellow" }
+
+# Commit graph colors - each branch flow gets a color from this palette
+# Colors are cycled through as new branches are encountered
+graph_colors = ["blue", "green", "yellow", "magenta", "cyan", "red"]
 
 command = { fg = "blue", mods = "BOLD" }
 active_arg = { fg = "light red", mods = "BOLD" }

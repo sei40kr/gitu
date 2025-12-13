@@ -1,0 +1,25 @@
+---
+source: src/tests/log.rs
+expression: ctx.redact_buffer()
+---
+▌•             ┃ 33736e9 main Merge feature-b                                   |
+ ├─╮                                                                            |
+ • │           ┃ 8be75d3 Merge feature-a                                        |
+ ├─┊─╮                                                                          |
+ │ • │         ┃ 71cb105 feature-b add feature-b1                               |
+ • │ │         ┃ ef0a022 add main2                                              |
+ │ │ •         ┃ 3a7d22e feature-a add feature-a2                               |
+ • │ │         ┃ a408eca add base1                                              |
+ │ │ •         ┃ d5c1b72 add feature-a1                                         |
+ • │ │         ┃ b66a0bf origin/main add initial-file                           |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+styles_hash: 4542e069b7026aa8

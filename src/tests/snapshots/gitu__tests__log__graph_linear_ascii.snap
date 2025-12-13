@@ -1,0 +1,25 @@
+---
+source: src/tests/log.rs
+expression: ctx.redact_buffer()
+---
+▌*             | 805d102 main add second                                        |
+ *             | 19560f6 add third                                              |
+ *             | 88039d5 add fourth                                             |
+ *             | b66a0bf origin/main add initial-file                           |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+                                                                                |
+styles_hash: ca1214ec7a12bc2d

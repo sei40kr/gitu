@@ -58,25 +58,186 @@ impl Item {
                 short_id,
                 associated_references,
                 summary,
+                graph_data,
                 ..
-            } => Line::from_iter(itertools::intersperse(
-                iter::once(Span::styled(short_id, &config.style.hash))
-                    .chain(
-                        associated_references
-                            .into_iter()
-                            .map(|reference| match reference {
-                                RefKind::Tag(tag) => Span::styled(tag, &config.style.tag),
-                                RefKind::Branch(branch) => {
-                                    Span::styled(branch, &config.style.branch)
-                                }
-                                RefKind::Remote(remote) => {
-                                    Span::styled(remote, &config.style.remote)
-                                }
-                            }),
-                    )
-                    .chain([Span::raw(summary)]),
-                Span::raw(" "),
-            )),
+            } => {
+                let mut spans = Vec::new();
+                let has_graph = graph_data.is_some();
+                // Always use fixed width of 13 chars for 7 branches (7 chars + 6 spaces)
+                const GRAPH_WIDTH: usize = 13;
+
+                // Track where graph spans end (before adding commit info)
+                let graph_span_start = spans.len();
+                let mut commit_branch_color = None;
+
+                // Add graph visualization if available
+                if let Some(graph) = graph_data {
+                    use crate::item_data::GraphCharType;
+
+                    let is_ascii = matches!(config.general.log_graph_style, crate::config::LogGraphStyle::Ascii);
+
+                    // Find the commit node's color (for separator)
+                    for col in &graph.columns {
+                        if col.char_type == GraphCharType::Node {
+                            commit_branch_color = Some(col.color_index);
+                            break;
+                        }
+                    }
+
+                    for col in &graph.columns {
+                        let color = if !config.style.graph_colors.is_empty() {
+                            config.style.graph_colors[col.color_index % config.style.graph_colors.len()]
+                        } else {
+                            ratatui::style::Color::Blue
+                        };
+
+                        let ch = if is_ascii {
+                            match col.char_type {
+                                GraphCharType::Node => '*',
+                                GraphCharType::Vertical => '|',
+                                GraphCharType::Horizontal => '-',
+                                GraphCharType::RightTop => '\\',
+                                GraphCharType::VerticalDashed => ':',
+                                GraphCharType::LeftVertical => '|',
+                                GraphCharType::Empty => ' ',
+                            }
+                        } else {
+                            match col.char_type {
+                                GraphCharType::Node => '•',
+                                GraphCharType::Vertical => '│',
+                                GraphCharType::Horizontal => '─',
+                                GraphCharType::RightTop => '╮',
+                                GraphCharType::VerticalDashed => '┊',
+                                GraphCharType::LeftVertical => '├',
+                                GraphCharType::Empty => ' ',
+                            }
+                        };
+
+                        spans.push(Span::styled(
+                            ch.to_string(),
+                            ratatui::style::Style::default().fg(color),
+                        ));
+                        // Add horizontal padding if specified (for connector lines like ├─╮)
+                        if col.horizontal_padding > 0 {
+                            let horiz_ch = if is_ascii { '-' } else { '─' };
+                            spans.push(Span::styled(
+                                horiz_ch.to_string().repeat(col.horizontal_padding),
+                                ratatui::style::Style::default().fg(color),
+                            ));
+                        } else {
+                            // Add space after characters except horizontal, vertical dashed, and empty
+                            if !matches!(col.char_type, GraphCharType::Horizontal | GraphCharType::VerticalDashed | GraphCharType::Empty) {
+                                spans.push(Span::raw(" "));
+                            }
+                        }
+                    }
+                }
+
+                // Pad to fixed width for alignment if graph is present
+                if has_graph {
+                    // Calculate actual rendered width in characters (not bytes)
+                    let graph_len: usize = spans[graph_span_start..].iter().map(|s| s.content.chars().count()).sum();
+                    if graph_len < GRAPH_WIDTH {
+                        spans.push(Span::raw(" ".repeat(GRAPH_WIDTH - graph_len)));
+                    }
+
+                    // Add separator ` ┃ ` with commit branch color
+                    let separator_color = if let Some(color_index) = commit_branch_color {
+                        if !config.style.graph_colors.is_empty() {
+                            config.style.graph_colors[color_index % config.style.graph_colors.len()]
+                        } else {
+                            ratatui::style::Color::Blue
+                        }
+                    } else {
+                        ratatui::style::Color::Blue
+                    };
+
+                    let is_ascii = matches!(config.general.log_graph_style, crate::config::LogGraphStyle::Ascii);
+                    let separator = if is_ascii { " | " } else { " ┃ " };
+                    spans.push(Span::styled(
+                        separator,
+                        ratatui::style::Style::default().fg(separator_color),
+                    ));
+                }
+
+                // Add commit info
+                spans.extend(itertools::intersperse(
+                    iter::once(Span::styled(short_id, &config.style.hash))
+                        .chain(
+                            associated_references
+                                .into_iter()
+                                .map(|reference| match reference {
+                                    RefKind::Tag(tag) => Span::styled(tag, &config.style.tag),
+                                    RefKind::Branch(branch) => {
+                                        Span::styled(branch, &config.style.branch)
+                                    }
+                                    RefKind::Remote(remote) => {
+                                        Span::styled(remote, &config.style.remote)
+                                    }
+                                }),
+                        )
+                        .chain([Span::raw(summary)]),
+                    Span::raw(" "),
+                ));
+
+                Line::from(spans)
+            }
+            ItemData::GraphLine { columns } => {
+                use crate::item_data::GraphCharType;
+
+                let is_ascii = matches!(config.general.log_graph_style, crate::config::LogGraphStyle::Ascii);
+                let mut spans = Vec::new();
+
+                for col in columns {
+                    let color = if !config.style.graph_colors.is_empty() {
+                        config.style.graph_colors[col.color_index % config.style.graph_colors.len()]
+                    } else {
+                        ratatui::style::Color::Blue
+                    };
+
+                    let ch = if is_ascii {
+                        match col.char_type {
+                            GraphCharType::Node => '*',
+                            GraphCharType::Vertical => '|',
+                            GraphCharType::Horizontal => '-',
+                            GraphCharType::RightTop => '\\',
+                            GraphCharType::VerticalDashed => ':',
+                            GraphCharType::LeftVertical => '|',
+                            GraphCharType::Empty => ' ',
+                        }
+                    } else {
+                        match col.char_type {
+                            GraphCharType::Node => '•',
+                            GraphCharType::Vertical => '│',
+                            GraphCharType::Horizontal => '─',
+                            GraphCharType::RightTop => '╮',
+                            GraphCharType::VerticalDashed => '┊',
+                            GraphCharType::LeftVertical => '├',
+                            GraphCharType::Empty => ' ',
+                        }
+                    };
+
+                    spans.push(Span::styled(
+                        ch.to_string(),
+                        ratatui::style::Style::default().fg(color),
+                    ));
+                    // Add horizontal padding if specified (for connector lines like ├─╮)
+                    if col.horizontal_padding > 0 {
+                        let horiz_ch = if is_ascii { '-' } else { '─' };
+                        spans.push(Span::styled(
+                            horiz_ch.to_string().repeat(col.horizontal_padding),
+                            ratatui::style::Style::default().fg(color),
+                        ));
+                    } else {
+                        // Add space after characters except horizontal, vertical dashed, and empty
+                        if !matches!(col.char_type, GraphCharType::Horizontal | GraphCharType::VerticalDashed | GraphCharType::Empty) {
+                            spans.push(Span::raw(" "));
+                        }
+                    }
+                }
+
+                Line::from(spans)
+            }
             ItemData::Untracked(path) => Line::styled(
                 path.to_string_lossy().into_owned(),
                 &config.style.file_header,
@@ -355,11 +516,15 @@ pub(crate) fn log(
                 .map(|(_, reference)| reference.clone())
                 .collect();
 
+            let parent_ids: Vec<String> = commit.parent_ids().map(|id| id.to_string()).collect();
+
             let data = ItemData::Commit {
                 oid: oid.to_string(),
                 short_id,
                 associated_references,
                 summary: commit.summary().unwrap_or("").to_string(),
+                parent_ids,
+                graph_data: None, // Will be filled in by graph layout algorithm
             };
 
             Ok(Some(Item {
